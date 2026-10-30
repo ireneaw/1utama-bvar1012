@@ -1,0 +1,1023 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>1 Utama: In-Between Spaces</title>
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Three.js Core & OrbitControls -->
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+
+  <!-- Canvas Confetti -->
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+  <style>
+    body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; }
+    #pano-container { width: 100vw; height: 100vh; position: absolute; top: 0; left: 0; z-index: 1; }
+    
+    .crosshair-reticle {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      pointer-events: none;
+      z-index: 20;
+    }
+
+    .glow-emerald {
+      box-shadow: 0 0 25px -4px rgba(16, 185, 129, 0.45);
+    }
+    .glow-emerald:hover {
+      box-shadow: 0 0 35px 2px rgba(52, 211, 153, 0.65);
+    }
+
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: rgba(15, 23, 42, 0.6); }
+    ::-webkit-scrollbar-thumb { background: rgba(100, 116, 139, 0.5); border-radius: 4px; }
+  </style>
+</head>
+<body class="bg-slate-950 text-white font-sans select-none antialiased">
+  <!-- Gatekeeper Onboarding Modal -->
+  <div id="onboarding-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/90 backdrop-blur-xl p-4">
+    <div class="bg-slate-900 border border-slate-700/80 max-w-md w-full rounded-2xl p-6 sm:p-8 shadow-2xl flex flex-col gap-5 text-white">
+      
+      <!-- Header -->
+      <div class="border-b border-slate-800 pb-3">
+        <span class="text-[11px] font-mono tracking-widest uppercase text-cyan-400 font-bold">Studio Architectural Exercise</span>
+        <h2 class="text-xl font-black tracking-tight text-slate-100 mt-0.5">Creating In-Between Spaces</h2>
+      </div>
+
+      <!-- Step 1: Student Name Input -->
+      <div id="onboarding-step-name" class="flex flex-col gap-4">
+        <p class="text-xs text-slate-300 leading-relaxed">
+          Enter your full name and student ID to enter the studio ledger and activate the session.
+        </p>
+        <div>
+          <label for="modal-student-name" class="block text-[11px] font-mono uppercase text-slate-400 mb-1.5">Student Name & ID</label>
+          <input type="text" id="modal-student-name" placeholder="e.g. Lim Wei Jun (23WMR01234)" 
+                class="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-cyan-300 placeholder-slate-600 focus:outline-none focus:border-cyan-400 font-medium transition-all" />
+          <span id="name-error-msg" class="hidden text-rose-400 text-[11px] mt-1.5 font-medium">Please enter your name to proceed.</span>
+        </div>
+        <button id="btn-to-instructions" 
+                class="w-full bg-cyan-600 hover:bg-cyan-500 active:scale-95 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider text-white transition-all cursor-pointer">
+          Continue to Briefing &rarr;
+        </button>
+      </div>
+
+      <!-- Step 2: Succinct Instructions (Initially Hidden) -->
+      <div id="onboarding-step-rules" class="hidden flex flex-col gap-4">
+        <div class="flex flex-col gap-2.5 text-xs text-slate-300 leading-relaxed">
+          <div class="flex items-start gap-2.5 bg-slate-950/60 p-2.5 rounded-xl border border-slate-800">
+            <span class="text-base">🧭</span>
+            <div><strong class="text-cyan-300">Explore 360° Views:</strong> Drag to survey each view 360°.</div>
+          </div>
+          <div class="flex items-start gap-2.5 bg-slate-950/60 p-2.5 rounded-xl border border-slate-800">
+            <span class="text-base">🎯</span>
+            <div><strong class="text-emerald-300">Tag Characteristics:</strong> Align crosshairs with implied characteristics/boundaries of in-between spaces, then click <strong class="text-white">TAG</strong> (+10 pts for correct guesses/-5 pts for wrong guesses).</div>
+          </div>
+          <div class="flex items-start gap-2.5 bg-slate-950/60 p-2.5 rounded-xl border border-slate-800">
+            <span class="text-base">📝</span>
+            <div><strong class="text-indigo-300">Custom Observations:</strong> Submit qualitative notes on unlisted spatial conditions.</div>
+          </div>
+          <div class="flex items-start gap-2.5 bg-slate-950/60 p-2.5 rounded-xl border border-slate-800">
+            <span class="text-base">⏱️</span>
+            <div><strong class="text-amber-300">Time Limit:</strong> Complete your analysis within 10 minutes to place on the cohort podium.</div>
+          </div>
+        </div>
+
+        <button id="btn-start-game" 
+                class="w-full bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 active:scale-95 py-3 rounded-xl text-xs font-black uppercase tracking-wider text-white shadow-lg shadow-emerald-500/20 transition-all cursor-pointer">
+          Start Playing!
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- 360 Viewport Container -->
+  <div id="pano-container"></div>
+
+  <!-- Center Targeting Reticle -->
+  <div id="reticle" class="crosshair-reticle">
+    <svg width="48" height="48" viewBox="0 0 48 48" class="stroke-emerald-400 drop-shadow-[0_0_8px_rgba(52,211,153,0.8)]">
+      <circle cx="24" cy="24" r="14" fill="none" stroke-width="1.8" stroke-dasharray="5 3"/>
+      <line x1="24" y1="2" x2="24" y2="12" stroke-width="2.5" stroke-linecap="round"/>
+      <line x1="24" y1="36" x2="24" y2="46" stroke-width="2.5" stroke-linecap="round"/>
+      <line x1="2" y1="24" x2="12" y2="24" stroke-width="2.5" stroke-linecap="round"/>
+      <line x1="36" y1="24" x2="46" y2="24" stroke-width="2.5" stroke-linecap="round"/>
+      <circle cx="24" cy="24" r="2.5" fill="#34d399"/>
+    </svg>
+  </div>
+
+  <!-- Calibration Pill (Press 'C' to toggle) -->
+  <div id="calib-pill" style="display: none;" class="absolute top-20 left-6 z-50 bg-black/90 border border-amber-400/60 px-4 py-2 rounded-xl text-xs font-mono text-amber-300 shadow-2xl backdrop-blur-md">
+    <span id="calib-coords">Yaw: 0.0° | Pitch: 0.0°</span> &nbsp;|&nbsp; <span id="calib-node">1U_1.jpg</span>
+  </div>
+
+  <!-- Top Bar HUD -->
+  <header class="absolute top-0 left-0 right-0 z-30 flex items-center justify-between px-6 py-4 bg-slate-950/80 backdrop-blur-xl border-b border-slate-800">
+    <div class="flex items-center gap-3">
+      <div class="flex items-center gap-2 px-3 py-1.5 bg-emerald-500/15 border border-emerald-500/30 rounded-xl text-emerald-400 font-extrabold text-sm tracking-wide">
+        <span>🏛️</span> 1 Utama: In-Between Spaces
+      </div>
+      <input type="text" id="student-name" placeholder="Student Name / ID..." class="bg-slate-900/90 border border-slate-700 text-xs px-3 py-2 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-emerald-400 focus:ring-1 focus:ring-emerald-400 transition-all w-48" />
+    </div>
+
+    <!-- Timer, Station Indicator & End Button -->
+    <div class="flex items-center gap-4">
+      <div id="station-badge" class="text-xs px-4 py-1.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 animate-pulse font-semibold">
+        Social Staircase
+      </div>
+      <div class="text-xs font-mono font-bold bg-slate-900/90 px-3.5 py-1.5 rounded-xl border border-slate-700 text-slate-200 flex items-center gap-1.5">
+        <span>⏱️</span> <span id="timer-display">10:00</span>
+      </div>
+      <button id="finish-early-btn" class="text-xs font-bold bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 border border-rose-500/40 px-3 py-1.5 rounded-xl transition-all cursor-pointer">
+        Finish Session
+      </button>
+    </div>
+
+    <!-- Live Score Display -->
+    <div class="flex items-center gap-2">
+      <div id="score-box" class="flex items-center gap-2 bg-gradient-to-r from-amber-500/20 to-orange-500/20 border border-amber-500/40 px-4 py-1.5 rounded-xl text-amber-300 font-bold transition-transform duration-200">
+        <span class="text-lg">🏆</span>
+        <span id="score-val" class="text-lg font-mono font-extrabold text-amber-200">0</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- Side Qualitative Guess Drawer -->
+  <div class="absolute top-24 left-6 z-30 max-w-xs bg-slate-950/85 backdrop-blur-xl border border-slate-800 rounded-2xl p-4 shadow-2xl">
+    <div class="flex items-center justify-between mb-2">
+      <span class="text-xs font-bold uppercase tracking-wider text-emerald-400">📝 Custom Observation</span>
+      <span class="text-[10px] text-slate-400">Aim & Submit</span>
+    </div>
+    <p class="text-[11px] text-slate-300 leading-snug mb-3">
+      Notice another boundary technique (lighting datum, floor step, change in materials)? Aim your crosshair at it and describe it below:
+    </p>
+    <div class="space-y-2">
+      <textarea id="guess-input" rows="2" placeholder="e.g. Recessed cove ceiling light creates an unbuilt walkway edge..." class="w-full bg-slate-900 border border-slate-700/80 rounded-xl p-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-emerald-400 resize-none"></textarea>
+      <button id="submit-guess-btn" class="w-full flex items-center justify-center gap-1.5 bg-cyan-600 hover:bg-cyan-500 active:scale-95 text-white font-bold text-xs py-2 rounded-xl border border-cyan-400/40 transition-all cursor-pointer">
+        <span>🚀</span> Submit Observation
+      </button>
+    </div>
+  </div>
+
+  <!-- Bottom Floating Interactive Dock -->
+  <footer class="absolute bottom-8 left-0 right-0 z-30 flex flex-col items-center gap-3.5 pointer-events-none">
+    
+    <!-- Reticle Tag Button -->
+    <button id="tag-btn" class="pointer-events-auto group flex items-center gap-3 bg-gradient-to-r from-emerald-500 via-teal-500 to-emerald-600 hover:from-emerald-400 hover:via-teal-400 text-white font-extrabold text-base px-8 py-3.5 rounded-full border border-emerald-300/40 glow-emerald active:scale-95 transition-all cursor-pointer">
+      <span class="text-xl group-hover:scale-125 transition-transform duration-200">🎯</span>
+      <span>TAG CROSSHAIR THRESHOLD</span>
+    </button>
+
+    <!-- Navigation Capsule with Larger Chevrons -->
+    <div class="pointer-events-auto flex items-center gap-4 bg-slate-950/90 backdrop-blur-2xl px-5 py-2.5 rounded-full border border-slate-800 shadow-2xl">
+      <!-- Previous Button -->
+      <button id="prev-node-btn" class="flex items-center gap-2 text-sm font-bold text-slate-300 hover:text-cyan-300 hover:bg-slate-800/80 px-4 py-2 rounded-full border border-slate-700/60 hover:border-cyan-400/50 active:scale-95 transition-all cursor-pointer group">
+        <svg class="w-5 h-5 -translate-x-0.5 group-hover:-translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7" />
+        </svg>
+        <span>Prev</span>
+      </button>
+
+      <!-- Station Counter -->
+      <div class="flex items-center px-4 border-x border-slate-800">
+        <span id="node-counter" class="text-xs font-mono font-bold tracking-wider text-cyan-400">Station 1 of 4</span>
+      </div>
+
+      <!-- Next Button -->
+      <button id="next-node-btn" class="flex items-center gap-2 text-sm font-bold text-slate-300 hover:text-cyan-300 hover:bg-slate-800/80 px-4 py-2 rounded-full border border-slate-700/60 hover:border-cyan-400/50 active:scale-95 transition-all cursor-pointer group">
+        <span>Next</span>
+        <svg class="w-5 h-5 translate-x-0.5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7" />
+        </svg>
+      </button>
+    </div>
+  </footer>
+
+  <!-- Toast Notification Modal -->
+  <div id="toast-modal" style="display: none;" class="absolute top-24 right-6 z-40 max-w-sm bg-slate-900/95 border border-slate-700 rounded-2xl p-5 shadow-2xl backdrop-blur-xl transition-all">
+    <div class="flex items-start gap-3.5">
+      <div id="toast-icon" class="text-3xl">🎉</div>
+      <div>
+        <h4 id="toast-title" class="font-extrabold text-sm text-white">Target Found!</h4>
+        <p id="toast-desc" class="text-xs text-slate-300 mt-1.5 leading-relaxed"></p>
+        <div id="toast-pts" class="text-xs font-extrabold text-emerald-400 mt-2 font-mono"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- End Game Scoreboard Screen (Hidden with inline style) -->
+  <div id="end-screen" style="display: none;" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/90 backdrop-blur-xl p-4">
+    <div class="max-w-md w-full bg-slate-900 border border-slate-700 rounded-3xl p-6 shadow-2xl text-center space-y-4">
+      <div class="text-5xl">🏆</div>
+      <h2 class="text-2xl font-black text-white">Session Complete!</h2>
+      <p class="text-sm text-slate-400">Architectural Spatial Delineation Analysis</p>
+      
+      <div class="bg-slate-950/70 border border-slate-800 rounded-2xl p-4 space-y-2">
+        <div class="flex justify-between text-xs text-slate-400">
+          <span>Student:</span>
+          <span id="end-student-name" class="font-bold text-white">Anonymous Hunter</span>
+        </div>
+        <div class="flex justify-between text-xs text-slate-400">
+          <span>Total Score:</span>
+          <span id="end-final-score" class="font-mono text-lg font-black text-amber-300">0</span>
+        </div>
+        <div class="flex justify-between text-xs text-slate-400">
+          <span>Verified Thresholds Found:</span>
+          <span id="end-hits-count" class="font-bold text-emerald-400">0</span>
+        </div>
+        <div class="flex justify-between text-xs text-slate-400">
+          <span>Observations Submitted:</span>
+          <span id="end-guesses-count" class="font-bold text-cyan-400">0</span>
+        </div>
+      </div>
+
+      <!-- <button onclick="location.reload()" class="w-full bg-emerald-500 hover:bg-emerald-400 active:scale-95 text-slate-950 font-extrabold text-sm py-3 rounded-xl transition-all cursor-pointer">
+        Restart Exploration
+      </button> -->
+    </div>
+  </div>
+
+  <!-- Lecturer Assessment Portal (Press 'L' to open - Hidden with inline style) -->
+  <div id="lecturer-modal" style="display: none;" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/85 backdrop-blur-lg p-6">
+    <div class="max-w-3xl w-full max-h-[85vh] bg-slate-900 border border-slate-700 rounded-3xl p-6 shadow-2xl flex flex-col">
+      <div class="flex items-center justify-between pb-4 border-b border-slate-800">
+        <div>
+          <h3 class="text-lg font-bold text-white flex items-center gap-2">
+            <span>👨‍🏫</span> Lecturer Appraisal Desk (3-Evaluator Queue)
+          </h3>
+          <p class="text-xs text-slate-400 mt-0.5">Evaluate custom observations submitted by students</p>
+        </div>
+        <div class="flex items-center gap-2">
+          <button id="export-csv-btn" class="text-xs bg-slate-800 hover:bg-slate-700 px-3 py-1.5 rounded-lg font-bold text-slate-200 border border-slate-700 cursor-pointer">
+            Export CSV
+          </button>
+          <button id="close-lecturer-btn" class="text-xs bg-slate-800 hover:bg-slate-700 px-3 py-1.5 rounded-lg font-bold text-slate-400 hover:text-white cursor-pointer">
+            Close (Esc)
+          </button>
+        </div>
+      </div>
+
+      <div id="submissions-list" class="flex-1 overflow-y-auto py-4 space-y-3 pr-1">
+        <p class="text-xs text-slate-500 italic text-center py-8">No qualitative observations submitted yet.</p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // --- ONBOARDING GATEKEEPER LOGIC ---
+    const onboardingModal = document.getElementById('onboarding-modal');
+    const stepName = document.getElementById('onboarding-step-name');
+    const stepRules = document.getElementById('onboarding-step-rules');
+    const modalNameInput = document.getElementById('modal-student-name');
+    const nameErrorMsg = document.getElementById('name-error-msg');
+    const btnToInstructions = document.getElementById('btn-to-instructions');
+    const btnStartGame = document.getElementById('btn-start-game');
+
+    // Step 1 -> Step 2 validation
+    btnToInstructions.addEventListener('click', () => {
+      const enteredName = modalNameInput.value.trim();
+      if (!enteredName) {
+        nameErrorMsg.classList.remove('hidden');
+        modalNameInput.classList.add('border-rose-500');
+        modalNameInput.focus();
+        return;
+      }
+
+      // Sync to the existing HUD student-name field
+      const hudNameInput = document.getElementById('student-name');
+      if (hudNameInput) {
+        hudNameInput.value = enteredName;
+      }
+
+      nameErrorMsg.classList.add('hidden');
+      modalNameInput.classList.remove('border-rose-500');
+
+      // Transition to Instructions in the same box
+      stepName.classList.add('hidden');
+      stepRules.classList.remove('hidden');
+    });
+
+    // Allow pressing 'Enter' in name input
+    modalNameInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') btnToInstructions.click();
+    });
+
+    // Step 2 -> Start Game
+    btnStartGame.addEventListener('click', () => {
+      // 1. Hide the onboarding modal
+      document.getElementById('onboarding-modal').classList.add('hidden');
+
+      // 2. Start the countdown timer
+      startTimer();
+
+      // 3. Optional: enable 360 viewer controls if you had them locked
+      controlsEnabled = true;
+    });
+
+    const PANORAMA_NODES = [
+      {
+        id: 'node1',
+        file: '1U_1.jpg',
+        title: 'Social Staircase',
+        isDiagnostic: true,
+        targets: [
+          {
+            id: 'stairs',
+            name: 'Social Staircase',
+            yawRange: [55, 109],
+            pitchRange: [-12, 14],
+            pts: 10,
+            theory: 'Change in elevation, built-in seating, and introduced green wall.'
+          },
+          {
+            id: 'floor_fin',
+            name: 'Floor Finishes',
+            yawRange: [199, 216],
+            pitchRange: [-16, -6],
+            pts: 10,
+            theory: 'Different floor tile pattern.'
+          },
+          {
+            id: 'glass_roof',
+            name: 'Glass Roof',
+            yawRange: [19, 144],
+            pitchRange: [20, 65],
+            pts: 10,
+            theory: 'Change in roof type indicates new in-between space.'
+          },
+          {
+            id: 'oculus',
+            name: 'Glazed Oculus',
+            yawRange: [240, 360],
+            pitchRange: [22, 85],
+            pts: 10,
+            theory: 'The round, glazed oculus highlights the atrium at the centre of the retail outlets.'
+          },
+          {
+            id: '1atrium',
+            name: 'Atrium',
+            yawRange: [264, 355],
+            pitchRange: [-34, -2],
+            pts: 10,
+            theory: 'Atrium surrounded by retail outlets.'
+          }
+        ]
+      },
+      {
+        id: 'node2',
+        file: '1U_2.jpg',
+        title: 'Courtyard',
+        isDiagnostic: true,
+        targets: [
+          {
+            id: 'wave',
+            name: 'Sheet Wave Simulator',
+            yawRange: [170, 238],
+            pitchRange: [-7, -1],
+            pts: 10,
+            theory: 'In urban design and mall planning, integrating an attraction like this into a pedestrian corridor is known as experiential retail activation or active leisure programming. It acts as an "anchor attraction" to draw foot traffic to outdoor pedestrian walkways.'
+          },
+          {
+            id: 'edge_bench',
+            name: 'Bench',
+            yawRange: [64, 73],
+            pitchRange: [-15, -4],
+            pts: 710,
+            theory: 'Benches invite users to pause and spend time in the courtyard.'
+          },
+          {
+            id: 'umbrella_seating',
+            name: 'Shaded Outdoor Seating',
+            yawRange: [99, 168],
+            pitchRange: [-12, 11],
+            pts: 10,
+            theory: 'Shaded tables and chairs allow users to spend time outdoors.'
+          },
+          {
+            id: 'barrier2',
+            name: 'Portable Barrier',
+            yawRange: [38, 77],
+            pitchRange: [-4, 1],
+            pts: 10,
+            theory: 'Portable barriers mark the end of the accessible courtyard.'
+          },
+          {
+            id: 'barrier',
+            name: 'Stanchion',
+            yawRange: [324, 17],
+            pitchRange: [-12, -2],
+            pts: 10,
+            theory: 'Stanchion with barrier ropes mark the end of the accessible courtyard.'
+          },
+          {
+            id: 'pot_plant',
+            name: 'Potted Plants',
+            yawRange: [70, 98],
+            pitchRange: [-36, -12],
+            pts: 10,
+            theory: 'Potted plants split the courtyard into two sections.'
+          },
+          {
+            id: 'planter',
+            name: 'Planter Boxes',
+            yawRange: [265, 330],
+            pitchRange: [-24, 6],
+            pts: 10,
+            theory: 'Potted plants mark the end of the accessible courtyard.'
+          },
+          {
+            id: 'floor_fin2',
+            name: 'Floor Finishes',
+            yawRange: [160,245],
+            pitchRange: [-75, -12],
+            pts: 10,
+            theory: 'Different floor tile pattern.'
+          },
+          {
+            id: 'building_enclosure',
+            name: 'Architectural Enclosure',
+            yawRange: [0, 360],
+            pitchRange: [2, 55],
+            pts: 10,
+            theory: 'The continuous multi-tiered facade acts as a vertical boundary plane that defines the courtyard.'
+          },
+        ]
+      },
+      {
+        id: 'node3',
+        file: '1U_3.jpg',
+        title: 'Gallery',
+        isDiagnostic: true,
+        targets: [
+          // 1. Darkened ceiling on the left corridor
+          {
+            id: 'dark_ceiling',
+            name: 'Dark Ceiling Soffit',
+            yawRange: [100, 185],
+            pitchRange: [10, 60],
+            pts: 10,
+            theory: 'The lowered black ceiling compresses the height of the space, establishing a different scale before it transitions to the corridor gallery.'
+          },
+
+          // 3. Atrium core void (looking down into the well)
+          {
+            id: 'atrium_void',
+            name: 'Atrium Void',
+            yawRange: [230, 345],
+            pitchRange: [-65, -26],
+            pts: 10,
+            theory: 'An atrium establishes visual continuity between commercial tiers.'
+          },
+
+          // 4. Vertical facade enclosure across the void
+          {
+            id: 'atrium_facade',
+            name: 'Architectural Enclosure',
+            yawRange: [225, 355],
+            pitchRange: [-25, 45],
+            pts: 10,
+            theory: 'The continuous multi-tiered facade acts as a vertical boundary plane that defines the courtyard.'
+          },
+
+          // 5. Exhibition / Gallery Wall
+          {
+            id: 'art_gallery_wall',
+            name: 'Exhibition Wall',
+            yawRange: [20, 75],
+            pitchRange: [-12, 22],
+            pts: 10,
+            theory: 'Mounting an art exhibition onto a blank wall transforms a standard transit hallway into a slow-paced cultural in-between zone.'
+          },
+
+          // 7. Base Plane Carpet (Checked last so specific void clicks register first)
+          {
+            id: 'carpet_floor',
+            name: 'Carpet / Floor Finishes',
+            yawRange: [0, 360],
+            pitchRange: [-75, -20],
+            pts: 10,
+            theory: 'The carpet softens footsteps, tactilely signaling a transition into a quieter, contemplative gallery area.'
+          }
+        ]
+      },
+      {
+        id: 'node4',
+        file: '1U_4.jpg',
+        title: 'Centre Court',
+        isDiagnostic: true,
+        targets: [
+          // 1. Central Skylight Overhead
+          {
+            id: 'atrium_skylight',
+            name: 'Skylight',
+            yawRange: [240, 300],
+            pitchRange: [45, 88],
+            pts: 10,
+            theory: 'Natural daylight from the skylight highlights the central atrium.'
+          },
+
+          // 2. Central Escalator Stack
+          {
+            id: 'escalator_spine',
+            name: 'Criss-Crossing Escalator Core',
+            yawRange: [250, 290],
+            pitchRange: [-25, 35],
+            pts: 10,
+            theory: 'The stacked escalators serve as a dynamic circulation spine, connecting various horizontal tiers.'
+          },
+
+          // 4. Ground Graphic Event Floor (Looking downward into well)
+          {
+            id: 'graphic_floor',
+            name: 'Optical Graphic Floor Datum',
+            yawRange: [210, 380],
+            pitchRange: [-75, -25],
+            pts: 10,
+            theory: 'The bold floor pattern delineates a temporary event zone from permanent walkways.'
+          },
+
+          // 5. Cascading Balcony Fascia (Macro Enclosure)
+          {
+            id: 'curved_fascia',
+            name: 'Terraced Balustrade',
+            yawRange: [0, 360],
+            pitchRange: [-25, 25],
+            pts: 10,
+            theory: 'Continuous cantilevered railings frame the perimeter of the void, shaping the atrium.'
+          }
+        ]
+      }
+    ];
+
+    let currentNodeIndex = 0;
+    let score = 0;
+    let claimedTargets = new Set();
+    let submissionsQueue = [];
+
+    // Three.js Engine Setup
+    const container = document.getElementById('pano-container');
+    const scene = new THREE.Scene();
+
+    const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+    camera.position.set(0, 0, 0.1);
+
+    const renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setPixelRatio(window.devicePixelRatio);
+    container.appendChild(renderer.domElement);
+
+    const controls = new THREE.OrbitControls(camera, renderer.domElement);
+    controls.enableZoom = false;
+    controls.enablePan = false;
+    controls.rotateSpeed = -0.3;
+
+    const geometry = new THREE.SphereGeometry(500, 60, 40);
+    geometry.scale(-1, 1, 1);
+
+    const textureLoader = new THREE.TextureLoader();
+    let sphereMaterial = new THREE.MeshBasicMaterial({ color: 0x111827 });
+    const sphereMesh = new THREE.Mesh(geometry, sphereMaterial);
+    scene.add(sphereMesh);
+
+    function loadPanorama(filename) {
+      textureLoader.load(
+        filename,
+        (texture) => {
+          if (sphereMesh.material.map) {
+            sphereMesh.material.map.dispose();
+          }
+          sphereMesh.material.dispose();
+          // Fresh material with DoubleSide guarantees visible rendering
+          sphereMesh.material = new THREE.MeshBasicMaterial({
+            map: texture,
+            side: THREE.DoubleSide
+          });
+          console.log(`✓ Rendered: ${filename}`);
+        },
+        undefined,
+        (err) => console.error(`✗ Error loading ${filename}`, err)
+      );
+    }
+
+    function getCameraAngles() {
+      const dir = new THREE.Vector3();
+      camera.getWorldDirection(dir);
+
+      let yaw = THREE.Math.radToDeg(Math.atan2(dir.x, -dir.z));
+      if (yaw < 0) yaw += 360;
+
+      let pitch = THREE.Math.radToDeg(Math.asin(dir.y));
+      return { yaw, pitch };
+    }
+
+    function updateNodeState() {
+      const node = PANORAMA_NODES[currentNodeIndex];
+      loadPanorama(node.file);
+
+      document.getElementById('node-counter').innerText = `Station ${currentNodeIndex + 1} of ${PANORAMA_NODES.length}`;
+      document.getElementById('calib-node').innerText = node.file;
+
+      const badge = document.getElementById('station-badge');
+      const reticle = document.getElementById('reticle');
+      const tagBtn = document.getElementById('tag-btn');
+
+      if (node.isDiagnostic) {
+        badge.innerText = `Diagnostic: ${node.title}`;
+        badge.className = "text-xs px-4 py-1.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 animate-pulse font-semibold";
+        reticle.style.display = 'block';
+        tagBtn.classList.remove('opacity-40', 'pointer-events-none');
+      } else {
+        badge.innerText = `Explore: ${node.title}`;
+        badge.className = "text-xs px-4 py-1.5 rounded-full bg-slate-800 text-slate-400 border border-slate-700 font-semibold";
+        reticle.style.display = 'none';
+        tagBtn.classList.add('opacity-40', 'pointer-events-none');
+      }
+    }
+
+    // Reticle Check
+    document.getElementById('tag-btn').addEventListener('click', () => {
+      const node = PANORAMA_NODES[currentNodeIndex];
+      if (!node.isDiagnostic) return;
+
+      const { yaw, pitch } = getCameraAngles();
+      let hitTarget = null;
+
+      for (const target of node.targets) {
+        const claimKey = `${node.id}_${target.id}`;
+        if (claimedTargets.has(claimKey)) continue;
+
+        let isYawMatch = false;
+        if (target.yawRange[0] <= target.yawRange[1]) {
+          isYawMatch = (yaw >= target.yawRange[0] && yaw <= target.yawRange[1]);
+        } else {
+          isYawMatch = (yaw >= target.yawRange[0] || yaw <= target.yawRange[1]);
+        }
+
+        const minPitch = Math.min(target.pitchRange[0], target.pitchRange[1]);
+        const maxPitch = Math.max(target.pitchRange[0], target.pitchRange[1]);
+        const isPitchMatch = (pitch >= minPitch && pitch <= maxPitch);
+
+        if (isYawMatch && isPitchMatch) {
+          hitTarget = target;
+          claimedTargets.add(claimKey);
+          break;
+        }
+      }
+
+      if (hitTarget) {
+        score += hitTarget.pts;
+        updateScoreDisplay();
+        confetti({ particleCount: 50, spread: 60, origin: { y: 0.82 } });
+        showToast(true, hitTarget.name, hitTarget.theory, `+${hitTarget.pts} Points!`);
+      } else {
+        score = Math.max(0, score - 5);
+        updateScoreDisplay();
+        showToast(false, "No Threshold Detected", `Aim was Yaw: ${yaw.toFixed(0)}°, Pitch: ${pitch.toFixed(0)}°. Examine floor patterns, datums, or steps.`, "-5 Points");
+      }
+    });
+
+    // Custom Guess Submission
+    document.getElementById('submit-guess-btn').addEventListener('click', () => {
+      const input = document.getElementById('guess-input');
+      const text = input.value.trim();
+      const studentName = document.getElementById('student-name').value.trim() || 'Anonymous Player';
+
+      if (!text) {
+        alert("Please describe the spatial boundary or threshold observed first.");
+        return;
+      }
+
+      const { yaw, pitch } = getCameraAngles();
+      const node = PANORAMA_NODES[currentNodeIndex];
+
+      const guessObj = {
+        id: Date.now(),
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        student: studentName,
+        station: node.title,
+        yaw: yaw.toFixed(1),
+        pitch: pitch.toFixed(1),
+        text: text,
+        status: 'pending'
+      };
+
+      submissionsQueue.push(guessObj);
+      input.value = '';
+
+      showToast(true, "Observation Recorded!", "You went above and beyond - good job!", "Submitted");
+      renderLecturerList();
+    });
+
+    function updateScoreDisplay() {
+      document.getElementById('score-val').innerText = score;
+      const sb = document.getElementById('score-box');
+      sb.classList.add('scale-125');
+      setTimeout(() => sb.classList.remove('scale-125'), 200);
+    }
+
+    function showToast(isHit, title, desc, pts) {
+      const toast = document.getElementById('toast-modal');
+      document.getElementById('toast-icon').innerText = isHit ? '🎉' : '⚠️';
+      document.getElementById('toast-title').innerText = title;
+      document.getElementById('toast-desc').innerText = desc;
+      const ptsElem = document.getElementById('toast-pts');
+      ptsElem.innerText = pts;
+      ptsElem.className = isHit ? "text-xs font-extrabold text-emerald-400 mt-2 font-mono" : "text-xs font-extrabold text-rose-400 mt-2 font-mono";
+
+      toast.style.display = 'block';
+      setTimeout(() => { toast.style.display = 'none'; }, 5500);
+    }
+
+    function renderLecturerList() {
+      const list = document.getElementById('submissions-list');
+      if (submissionsQueue.length === 0) {
+        list.innerHTML = `<p class="text-xs text-slate-500 italic text-center py-8">No qualitative observations submitted yet.</p>`;
+        return;
+      }
+
+      list.innerHTML = submissionsQueue.map(item => `
+        <div class="bg-slate-950/80 border ${item.status === 'accepted' ? 'border-emerald-500/50' : item.status === 'rejected' ? 'border-rose-500/50' : 'border-slate-800'} rounded-2xl p-4 flex items-start justify-between gap-4">
+          <div class="space-y-1">
+            <div class="flex items-center gap-2">
+              <span class="text-xs font-bold text-white">${item.student}</span>
+              <span class="text-[10px] text-slate-400">@ ${item.station} (${item.timestamp})</span>
+              <span class="text-[10px] font-mono text-amber-400/80">[Yaw: ${item.yaw}°, Pitch: ${item.pitch}°]</span>
+            </div>
+            <p class="text-xs text-slate-300 leading-relaxed font-sans">"${item.text}"</p>
+          </div>
+
+          <div class="flex items-center gap-2 shrink-0">
+            ${item.status === 'pending' ? `
+              <button onclick="appraiseGuess(${item.id}, true)" class="text-xs bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 border border-emerald-500/40 px-3 py-1.5 rounded-xl font-bold cursor-pointer">
+                Accept (+10)
+              </button>
+              <button onclick="appraiseGuess(${item.id}, false)" class="text-xs bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 border border-rose-500/40 px-3 py-1.5 rounded-xl font-bold cursor-pointer">
+                Reject (-5)
+              </button>
+            ` : `
+              <span class="text-xs font-mono font-bold px-3 py-1 rounded-lg ${item.status === 'accepted' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-rose-500/20 text-rose-400'}">
+                ${item.status.toUpperCase()}
+              </span>
+            `}
+          </div>
+        </div>
+      `).join('');
+    }
+
+    window.appraiseGuess = function(id, isAccepted) {
+      const item = submissionsQueue.find(q => q.id === id);
+      if (!item || item.status !== 'pending') return;
+
+      if (isAccepted) {
+        item.status = 'accepted';
+        score += 10;
+        confetti({ particleCount: 30, spread: 50, origin: { y: 0.8 } });
+      } else {
+        item.status = 'rejected';
+        score = Math.max(0, score - 5);
+      }
+
+      updateScoreDisplay();
+      renderLecturerList();
+    };
+
+    // Toggle Lecturer Appraisal Desk ('L' key)
+    window.addEventListener('keydown', (e) => {
+      if (e.key.toLowerCase() === 'l') {
+        const modal = document.getElementById('lecturer-modal');
+        modal.style.display = (modal.style.display === 'none' || modal.style.display === '') ? 'flex' : 'none';
+        renderLecturerList();
+      }
+      if (e.key === 'Escape') {
+        document.getElementById('lecturer-modal').style.display = 'none';
+      }
+    });
+
+    document.getElementById('close-lecturer-btn').addEventListener('click', () => {
+      document.getElementById('lecturer-modal').style.display = 'none';
+    });
+
+    // Export Submissions as CSV
+    document.getElementById('export-csv-btn').addEventListener('click', () => {
+      if (submissionsQueue.length === 0) {
+        alert("No observations to export.");
+        return;
+      }
+      let csv = "ID,Timestamp,Student,Station,Yaw,Pitch,Observation,Status\n";
+      submissionsQueue.forEach(q => {
+        csv += `"${q.id}","${q.timestamp}","${q.student}","${q.station}","${q.yaw}","${q.pitch}","${q.text.replace(/"/g, '""')}","${q.status}"\n`;
+      });
+      const blob = new Blob([csv], { type: 'text/csv' });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `Liminal_Hunt_Submissions_${Date.now()}.csv`;
+      a.click();
+    });
+
+    // Station Navigation Buttons
+    document.getElementById('next-node-btn').addEventListener('click', () => {
+      if (currentNodeIndex < PANORAMA_NODES.length - 1) {
+        currentNodeIndex++;
+        updateNodeState();
+      }
+    });
+    document.getElementById('prev-node-btn').addEventListener('click', () => {
+      if (currentNodeIndex > 0) {
+        currentNodeIndex--;
+        updateNodeState();
+      }
+    });
+
+    // End-Game Screen
+    function showEndScreen() {
+      // 1. Immediately send results to your Google Sheet
+      submitStudentResultsToSheet();
+
+      // 2. Stop the timer if running
+      clearInterval(timerInterval);
+
+      const studentName = document.getElementById('student-name').value.trim() || 'Anonymous Hunter';
+      document.getElementById('end-student-name').innerText = studentName;
+      document.getElementById('end-final-score').innerText = score;
+      document.getElementById('end-hits-count').innerText = claimedTargets.size;
+      document.getElementById('end-guesses-count').innerText = submissionsQueue.length;
+      document.getElementById('end-screen').style.display = 'flex';
+      confetti({ particleCount: 100, spread: 90, origin: { y: 0.5 } });
+    }
+
+    document.getElementById('finish-early-btn').addEventListener('click', showEndScreen);
+
+    // 10-Minute Countdown Timer
+let timerInterval = null;
+let timeLeft = 600; // 10 minutes in seconds
+let elapsedSeconds = 0;
+
+function formatTime(seconds) {
+  const m = Math.floor(seconds / 60).toString().padStart(2, '0');
+  const s = (seconds % 60).toString().padStart(2, '0');
+  return `${m}:${s}`;
+}
+
+function startTimer() {
+  // Prevent duplicate intervals if clicked multiple times
+  if (timerInterval) clearInterval(timerInterval);
+
+  const timerDisplay = document.getElementById('timer-display');
+
+  timerInterval = setInterval(() => {
+    timeLeft--;
+    elapsedSeconds++;
+
+    // Update HUD display
+    if (timerDisplay) {
+      timerDisplay.innerText = formatTime(timeLeft);
+
+      // Warning color for the last 60 seconds
+      if (timeLeft <= 60) {
+        timerDisplay.classList.add('text-rose-400', 'animate-pulse');
+      }
+    }
+
+    // 10-minute buzzer
+    if (timeLeft <= 0) {
+      clearInterval(timerInterval);
+      showToast(false, "Time is Up!", "Session ended. Uploading final score...", "COMPLETE");
+      showEndScreen();
+    }
+  }, 1000);
+}
+
+    // Toggle Calibration Overlay ('C' key)
+    window.addEventListener('keydown', (e) => {
+      if (e.key.toLowerCase() === 'c') {
+        const p = document.getElementById('calib-pill');
+        p.style.display = (p.style.display === 'none' || p.style.display === '') ? 'block' : 'none';
+      }
+    });
+
+    // Render Loop
+    function animate() {
+      requestAnimationFrame(animate);
+      controls.update();
+      renderer.render(scene, camera);
+
+      const p = document.getElementById('calib-pill');
+      if (p.style.display !== 'none' && p.style.display !== '') {
+        const { yaw, pitch } = getCameraAngles();
+        document.getElementById('calib-coords').innerText = `Yaw: ${yaw.toFixed(1)}° | Pitch: ${pitch.toFixed(1)}°`;
+      }
+    }
+
+    window.addEventListener('resize', () => {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    });
+
+    updateNodeState();
+    animate();
+    // ==========================================
+    // GOOGLE SHEETS SYNC & TOP 5 LEADERBOARD
+    // ==========================================
+    const GOOGLE_SHEET_WEBAPP_URL = "https://script.google.com/macros/s/AKfycbz0GGyvE9WRDuqJeUm-NI0ilqAPITNMPc0JaoBQFJIlIx9ZndzHkeufY0PLNaPXISMDdQ/exec";
+
+    // Track total clicks and hits for the accuracy metric
+    let totalClicks = 0;
+    let successfulHits = 0;
+
+    async function submitStudentResultsToSheet() {
+      const nameInput = document.getElementById('student-name');
+      const studentName = (nameInput && nameInput.value.trim()) ? nameInput.value.trim() : 'Anonymous Hunter';
+      
+      const payload = {
+        name: studentName,
+        score: score,
+        targetsCount: claimedTargets.size,
+        accuracy: totalClicks > 0 ? Math.round((successfulHits / totalClicks) * 100) : 100,
+        timeTaken: document.getElementById('timer-display') ? document.getElementById('timer-display').innerText : "N/A",
+        observations: submissionsQueue.map(s => ({
+          station: s.station,
+          text: s.text,
+          angles: `[Yaw: ${s.yaw}°, Pitch: ${s.pitch}°]`
+        }))
+      };
+
+      try {
+        showToast(true, "Submitting Results...", "Syncing score with the studio sheet.", "UPLOADING");
+
+        const response = await fetch(GOOGLE_SHEET_WEBAPP_URL, {
+          method: "POST",
+          headers: { "Content-Type": "text/plain;charset=utf-8" },
+          body: JSON.stringify(payload)
+        });
+
+        const result = await response.json();
+        if (result.status === "success") {
+          showToast(true, "Results Recorded!", "Your submission is logged.", "SAVED");
+          if (result.top5 && result.top5.length > 0) {
+            displayTop5Modal(result.top5, studentName);
+          }
+        }
+      } catch (err) {
+        console.error("Submission failed:", err);
+        showToast(false, "Offline Record", "Score saved locally. Please report your score to the lecturer.", "SAVED LOCALLY");
+      }
+    }
+
+    // Modal to display the Top 5 results to the student
+    function displayTop5Modal(top5List, currentStudent) {
+      // Remove any existing leaderboard modal
+      const existing = document.getElementById('top5-modal');
+      if (existing) existing.remove();
+
+      const modalHtml = `
+        <div id="top5-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md p-4">
+          <div class="bg-slate-900 border border-slate-700 max-w-md w-full rounded-2xl p-6 shadow-2xl flex flex-col gap-4 text-white">
+            <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+              <h3 class="text-lg font-black tracking-wide text-amber-400 flex items-center gap-2">
+                🏆 STUDIO LEADERBOARD (TOP 5)
+              </h3>
+              <button onclick="document.getElementById('top5-modal').remove()" class="text-slate-400 hover:text-white font-bold text-lg">&times;</button>
+            </div>
+            
+            <p class="text-xs text-slate-300">Here are the leading analysts from this session:</p>
+
+            <div class="flex flex-col gap-2">
+              ${top5List.map((entry, idx) => `
+                <div class="flex items-center justify-between px-3.5 py-2.5 rounded-xl border ${
+                  entry.name.toLowerCase() === currentStudent.toLowerCase() 
+                    ? 'bg-emerald-500/20 border-emerald-400/50 text-emerald-300 font-bold' 
+                    : 'bg-slate-950/60 border-slate-800 text-slate-200'
+                }">
+                  <div class="flex items-center gap-3">
+                    <span class="font-mono text-sm w-5 text-slate-400">#${idx + 1}</span>
+                    <span class="text-sm tracking-wide truncate max-w-[180px]">${entry.name}</span>
+                  </div>
+                  <div class="font-mono text-sm font-black text-cyan-300">
+                    ${entry.score} pts
+                  </div>
+                </div>
+              `).join('')}
+            </div>
+
+            <button onclick="document.getElementById('top5-modal').remove()" 
+                    class="mt-2 w-full bg-cyan-600 hover:bg-cyan-500 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider text-white transition-all cursor-pointer">
+              Close Podium
+            </button>
+          </div>
+        </div>
+      `;
+
+      document.body.insertAdjacentHTML('beforeend', modalHtml);
+    }
+  </script>
+</body>
+</html>
