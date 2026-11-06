@@ -33,6 +33,12 @@
       left: 0; 
       z-index: 1; 
     }
+
+    #pano-container canvas {
+      width: 100% !important;
+      height: 100% !important;
+      display: block;
+    }
     
     .crosshair-reticle {
       position: absolute;
@@ -935,11 +941,29 @@
       const width = window.innerWidth;
       const height = window.innerHeight;
 
-      camera.aspect = width / height;
-      camera.updateProjectionMatrix();
-
-      renderer.setSize(width, height);
-      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    // 1. Force the WebGL container canvas to release any fixed pixel traps
+      if (renderer && renderer.domElement) {
+        renderer.domElement.style.width = '100%';
+        renderer.domElement.style.height = '100%';
+      }
+    
+      // 2. Update Three.js camera & projection
+      if (camera && renderer) {
+        camera.aspect = width / height;
+        camera.updateProjectionMatrix();
+        renderer.setSize(width, height, true);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+      }
+    }
+    
+    // Listen to standard window resize
+    window.addEventListener('resize', () => {
+      handleViewportResize();
+    });
+    
+    // Listen to mobile rotation with a delay to let the browser chrome adjust
+    window.addEventListener('orientationchange', () => {
+      setTimeout(handleViewportResize, 150);
     });
 
     updateNodeState();
