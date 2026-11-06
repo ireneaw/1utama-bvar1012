@@ -954,6 +954,35 @@
         renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
       }
     });
+
+// 1. Define the handler function
+    function handleViewportResize() {
+      const width = window.innerWidth;
+      const height = window.innerHeight;
+
+      // Force canvas to fit parent without trapping pixels
+      if (renderer && renderer.domElement) {
+        renderer.domElement.style.width = '100%';
+        renderer.domElement.style.height = '100%';
+      }
+
+      // Update camera and WebGL renderer
+      if (camera && renderer) {
+        camera.aspect = width / height;
+        camera.updateProjectionMatrix();
+        renderer.setSize(width, height, true);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+      }
+    }
+
+    // 2. Attach to standard window resize
+    window.addEventListener('resize', handleViewportResize);
+
+    // 3. Attach to mobile orientation changes (with a slight delay for address bar adjustment)
+    window.addEventListener('orientationchange', () => {
+      setTimeout(handleViewportResize, 150);
+    });
+
     
     // Listen to standard window resize
     window.addEventListener('resize', () => {
