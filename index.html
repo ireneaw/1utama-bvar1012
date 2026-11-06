@@ -89,7 +89,7 @@
       </div>
 
       <!-- Step 2: Succinct Instructions (Initially Hidden) -->
-      <div id="onboarding-step-rules" class="hidden flex flex-col gap-4">
+      <div id="onboarding-step-rules" class="hidden flex-col gap-4">
         <div class="flex flex-col gap-2.5 text-xs text-slate-300 leading-relaxed">
           <div class="flex items-start gap-2.5 bg-slate-950/60 p-2.5 rounded-xl border border-slate-800">
             <span class="text-base">🧭</span>
@@ -320,40 +320,56 @@
     const btnStartGame = document.getElementById('btn-start-game');
 
     // Step 1 -> Step 2 validation
-    btnToInstructions.addEventListener('click', () => {
-      const enteredName = modalNameInput ? modalNameInput.value.trim() : '';
-      if (!enteredName) {
-        if (nameErrorMsg) nameErrorMsg.classList.remove('hidden');
-        if (modalNameInput) {
-          modalNameInput.classList.add('border-rose-500');
-          modalNameInput.focus();
+    if (btnToInstructions) {
+      btnToInstructions.addEventListener('click', (e) => {
+        if (e) e.preventDefault();
+        
+        const enteredName = modalNameInput ? modalNameInput.value.trim() : '';
+
+        if (!enteredName) {
+          if (nameErrorMsg) nameErrorMsg.classList.remove('hidden');
+          if (modalNameInput) {
+            modalNameInput.classList.add('border-rose-500');
+            modalNameInput.focus();
+          }
+          return;
         }
-        return;
-      }
 
-      if (nameErrorMsg) nameErrorMsg.classList.add('hidden');
-      if (modalNameInput) modalNameInput.classList.remove('border-rose-500');
+        if (nameErrorMsg) nameErrorMsg.classList.add('hidden');
+        if (modalNameInput) modalNameInput.classList.remove('border-rose-500');
 
-      // Transition directly to Instructions
-      stepName.classList.add('hidden');
-      stepRules.classList.remove('hidden');
-    });
+        // Explicitly hide Step 1 and display Step 2
+        if (stepName) {
+          stepName.classList.add('hidden');
+          stepName.style.display = 'none';
+        }
+        if (stepRules) {
+          stepRules.classList.remove('hidden');
+          stepRules.style.display = 'flex';
+        }
+      });
+    }
 
     // Allow pressing 'Enter' in name input
     if (modalNameInput) {
       modalNameInput.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter') btnToInstructions.click();
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          if (btnToInstructions) btnToInstructions.click();
+        }
       });
     }
 
     // Step 2 -> Start Game
-    btnStartGame.addEventListener('click', () => {
-      // 1. Hide the onboarding modal
-      document.getElementById('onboarding-modal').classList.add('hidden');
-
-      // 2. Start the countdown timer
-      startTimer();
-    });
+    if (btnStartGame) {
+      btnStartGame.addEventListener('click', () => {
+        if (onboardingModal) {
+          onboardingModal.classList.add('hidden');
+          onboardingModal.style.display = 'none';
+        }
+        startTimer();
+      });
+    }
 
     const PANORAMA_NODES = [
       {
