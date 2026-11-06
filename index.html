@@ -140,11 +140,10 @@
 
   <!-- Top Bar HUD (Compact & Fully Responsive) -->
   <header class="absolute top-0 left-0 right-0 z-30 flex items-center justify-between px-2.5 py-2 sm:px-6 sm:py-3 bg-slate-950/85 backdrop-blur-xl border-b border-slate-800 gap-1.5">
-    <div class="flex items-center gap-2">
+  <div class="flex items-center gap-2">
       <div class="flex items-center gap-1.5 px-2.5 py-1 bg-emerald-500/15 border border-emerald-500/30 rounded-lg text-emerald-400 font-extrabold text-xs">
         <span>🏛️</span> <span class="hidden md:inline">1 Utama: In-Between Spaces</span>
       </div>
-      <input type="text" id="student-name" placeholder="Student Name / ID..." class="hidden lg:block bg-slate-900 border border-slate-700 text-xs px-2.5 py-1 rounded-lg text-white w-36 focus:outline-none focus:border-emerald-400" />
     </div>
 
     <!-- Timer, Station Indicator & End Button -->
@@ -322,32 +321,30 @@
 
     // Step 1 -> Step 2 validation
     btnToInstructions.addEventListener('click', () => {
-      const enteredName = modalNameInput.value.trim();
+      const enteredName = modalNameInput ? modalNameInput.value.trim() : '';
       if (!enteredName) {
-        nameErrorMsg.classList.remove('hidden');
-        modalNameInput.classList.add('border-rose-500');
-        modalNameInput.focus();
+        if (nameErrorMsg) nameErrorMsg.classList.remove('hidden');
+        if (modalNameInput) {
+          modalNameInput.classList.add('border-rose-500');
+          modalNameInput.focus();
+        }
         return;
       }
 
-      // Sync to the existing HUD student-name field
-      const hudNameInput = document.getElementById('student-name');
-      if (hudNameInput) {
-        hudNameInput.value = enteredName;
-      }
+      if (nameErrorMsg) nameErrorMsg.classList.add('hidden');
+      if (modalNameInput) modalNameInput.classList.remove('border-rose-500');
 
-      nameErrorMsg.classList.add('hidden');
-      modalNameInput.classList.remove('border-rose-500');
-
-      // Transition to Instructions in the same box
+      // Transition directly to Instructions
       stepName.classList.add('hidden');
       stepRules.classList.remove('hidden');
     });
 
     // Allow pressing 'Enter' in name input
-    modalNameInput.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter') btnToInstructions.click();
-    });
+    if (modalNameInput) {
+      modalNameInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') btnToInstructions.click();
+      });
+    }
 
     // Step 2 -> Start Game
     btnStartGame.addEventListener('click', () => {
