@@ -1110,30 +1110,6 @@
         renderLeaderboardBubble([{ name: studentName, score: score }], studentName);
       }
     }
-    
-      try {
-        showToast(true, "Submitting Results...", "Syncing score with the studio sheet.", "UPLOADING");
-
-        const response = await fetch(GOOGLE_SHEET_WEBAPP_URL, {
-          method: "POST",
-          headers: { "Content-Type": "text/plain;charset=utf-8" },
-          body: JSON.stringify(payload)
-        });
-
-        const result = await response.json();
-        if (result.status === "success") {
-          showToast(true, "Results Recorded!", "Your submission is logged.", "SAVED");
-          if (result.top5 && result.top5.length > 0) {
-            displayTop5Modal(result.top5, studentName);
-          }
-        }
-      } catch (err) {
-        console.error("Submission failed:", err);
-        showToast(false, "Offline Record", "Score saved locally. Please report your score to the lecturer.", "SAVED LOCALLY");
-      }
-    }
-
-    
   </script>
 </body>
 </html>
