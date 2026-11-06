@@ -816,12 +816,12 @@
 
     // Toggle Lecturer Appraisal Desk ('L' key)
     window.addEventListener('keydown', (e) => {
-      if (e.key.toLowerCase() === 'l') {
+      if (e.key && e.key.toLowerCase() === 'l') {
         const modal = document.getElementById('lecturer-modal');
         modal.style.display = (modal.style.display === 'none' || modal.style.display === '') ? 'flex' : 'none';
         renderLecturerList();
       }
-      if (e.key === 'Escape') {
+      if (e.key && e.key === 'Escape') {
         document.getElementById('lecturer-modal').style.display = 'none';
       }
     });
@@ -917,7 +917,7 @@
 
     // Toggle Calibration Overlay ('C' key)
     window.addEventListener('keydown', (e) => {
-      if (e.key.toLowerCase() === 'c') {
+      if (e.key && e.key.toLowerCase() === 'c') {
         const p = document.getElementById('calib-pill');
         p.style.display = (p.style.display === 'none' || p.style.display === '') ? 'block' : 'none';
       }
@@ -1038,7 +1038,7 @@
             <div class="flex flex-col gap-2">
               ${top5List.map((entry, idx) => `
                 <div class="flex items-center justify-between px-3.5 py-2.5 rounded-xl border ${
-                  entry.name.toLowerCase() === currentStudent.toLowerCase() 
+                  (entry?.name || '').toLowerCase() === (currentStudent || '').toLowerCase()
                     ? 'bg-emerald-500/20 border-emerald-400/50 text-emerald-300 font-bold' 
                     : 'bg-slate-950/60 border-slate-800 text-slate-200'
                 }">
