@@ -16,8 +16,23 @@
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 
   <style>
-    body, html { margin: 0; padding: 0; width: 100%; height: 100%; height: 100dvh; overflow: hidden; }
-    #pano-container { width: 100vw; height:100%; height: 100dvh; position: absolute; top: 0; left: 0; z-index: 1; }
+    body, html { 
+      margin: 0; 
+      padding: 0; 
+      width: 100%; 
+      height: 100%; 
+      height: 100dvh; 
+      overflow: hidden; 
+    }
+    #pano-container { 
+      width: 100vw; 
+      height: 100%; 
+      height: 100dvh; 
+      position: absolute; 
+      top: 0; 
+      left: 0; 
+      z-index: 1; 
+    }
     
     .crosshair-reticle {
       position: absolute;
@@ -58,7 +73,7 @@
         </p>
         <div>
           <label for="modal-student-name" class="block text-[11px] font-mono uppercase text-slate-400 mb-1.5">Student Name & ID</label>
-          <input type="text" id="modal-student-name" placeholder="e.g. Lim Wei Jun (23WMR01234)" 
+          <input type="text" id="modal-student-name" placeholder="e.g. John Doe (ID: 000000)" 
                 class="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-cyan-300 placeholder-slate-600 focus:outline-none focus:border-cyan-400 font-medium transition-all" />
           <span id="name-error-msg" class="hidden text-rose-400 text-[11px] mt-1.5 font-medium">Please enter your name to proceed.</span>
         </div>
@@ -118,79 +133,89 @@
     <span id="calib-coords">Yaw: 0.0° | Pitch: 0.0°</span> &nbsp;|&nbsp; <span id="calib-node">1U_1.jpg</span>
   </div>
 
-  <!-- Top Bar HUD (Responsive) -->
+  <!-- Top Bar HUD (Compact & Fully Responsive) -->
   <header class="absolute top-0 left-0 right-0 z-30 flex items-center justify-between px-2.5 py-2 sm:px-6 sm:py-3 bg-slate-950/85 backdrop-blur-xl border-b border-slate-800 gap-1.5">
     <div class="flex items-center gap-2">
       <div class="flex items-center gap-1.5 px-2.5 py-1 bg-emerald-500/15 border border-emerald-500/30 rounded-lg text-emerald-400 font-extrabold text-xs">
-        <span>🏛️</span> <span class="hidden md:inline"> 1 Utama: In-Between Spaces</span>span>
+        <span>🏛️</span> <span class="hidden md:inline">1 Utama: In-Between Spaces</span>
       </div>
-      <input type="text" id="student-name" placeholder="Student Name" class="hidden lg:block bg-slate-900 border border-slate-700 text-xs px-2.5 py-1 rounded-lg text-white w-36 focus:outline-none focus:border-emerald-400" /> 
+      <input type="text" id="student-name" placeholder="Student Name / ID..." class="hidden lg:block bg-slate-900 border border-slate-700 text-xs px-2.5 py-1 rounded-lg text-white w-36 focus:outline-none focus:border-emerald-400" />
     </div>
 
     <!-- Timer, Station Indicator & End Button -->
     <div class="flex items-center gap-1.5 sm:gap-3">
-      <div id="station-badge" class="text-[10px] sm:text-xs px-2.5 py-1 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 font-semibold truncate max-w-[105px] sm:max-w-none" >
+      <div id="station-badge" class="text-[10px] sm:text-xs px-2.5 py-1 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 font-semibold truncate max-w-[110px] sm:max-w-none">
         Social Staircase
       </div>
       <div class="text-[11px] sm:text-xs font-mono font-bold bg-slate-900 px-2 py-1 rounded-lg border border-slate-700 text-slate-200 flex items-center gap-1">
         <span>⏱️</span> <span id="timer-display">10:00</span>
       </div>
-      <div class="flex items-center gap-1.5 sm:gap-2"> <div id="score-box" class="flex items-center gap-1 bg-amber-500/20 border border-amber-500/40 px-2 py-1 rounded-lg text-amber-300 font-bold text-xs sm:text-sm"> <span>🏆</span> <span id="score-val" class="font-mono font-extrabold text-amber-200">0</span> </div> <button id="finish-early-btn" class="text-[10px] sm:text-xs font-bold bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 border border-rose-500/40 px-2 sm:px-2.5 py-1 rounded-lg transition-all cursor-pointer"> End </button> 
-      </div> 
+    </div>
+
+    <!-- Live Score Display & End Button -->
+    <div class="flex items-center gap-1.5 sm:gap-2">
+      <div id="score-box" class="flex items-center gap-1 bg-amber-500/20 border border-amber-500/40 px-2 py-1 rounded-lg text-amber-300 font-bold text-xs sm:text-sm">
+        <span>🏆</span>
+        <span id="score-val" class="font-mono font-extrabold text-amber-200">0</span>
+      </div>
+      <button id="finish-early-btn" class="text-[10px] sm:text-xs font-bold bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 border border-rose-500/40 px-2 sm:px-2.5 py-1 rounded-lg transition-all cursor-pointer">
+        End
+      </button>
+    </div>
   </header>
 
-  <!-- Side Qualitative Guess Drawer -->
-  <div class="absolute top-14 left-3 sm:top-20 sm:left-6 z-30 flex items-center gap-1.5 bg-slate-900/90 border border-cyan-300 text-xs px-3 py-1.5 rounded-full shadow-lg backdrop-blur-md cursor-pointer">
-    <span>📝</span> 
-    <span class="font-bold text-[11px] sm:text-xs">Observe</span> 
-  </button> 
-    <!-- Collapsible Observation Drawer (Hidden until clicked) --> 
-  <div id="obs-drawer" class="hidden absolute top-14 left-3 right-3 sm:right-auto sm:left-6 z-40 max-w-sm bg-slate-950/95 backdrop-blur-2xl border border-slate-800 rounded-2xl p-4 shadow-2xl"> 
-  <div class="flex items-center justify-between mb-2"> 
-    <span class="text-xs font-bold uppercase tracking-wider text-emerald-400">📝 Custom Observation</span> 
-    <button id="close-obs-btn" class="text-slate-400 hover:text-white text-lg font-bold p-1 leading-none cursor-pointer">&times;</button> 
-  </div> 
-    <p class="text-[11px] text-slate-300 leading-snug mb-3"> 
-      Aim your crosshair at a threshold datum, step, or material transition and describe it: 
-    </p> 
-    <div class="space-y-2"> <textarea id="guess-input" rows="2" placeholder="e.g. Recessed cove ceiling light creates an unbuilt walkway edge..." class="w-full bg-slate-900 border border-slate-700/80 rounded-xl p-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-emerald-400 resize-none"></textarea> 
-      <button id="submit-guess-btn" class="w-full flex items-center justify-center gap-1.5 bg-cyan-600 hover:bg-cyan-500 active:scale-95 text-white font-bold text-xs py-2 rounded-xl border border-cyan-400/40 transition-all cursor-pointer"> 
-        <span>🚀</span> Submit Observation 
-      </button> 
-    </div> 
+  <!-- Floating Observation Trigger Button -->
+  <button id="toggle-obs-btn" class="absolute top-14 left-3 sm:top-20 sm:left-6 z-30 flex items-center gap-1.5 bg-slate-900/90 border border-cyan-500/50 hover:bg-slate-800 text-cyan-300 text-xs px-3 py-1.5 rounded-full shadow-lg backdrop-blur-md cursor-pointer">
+    <span>📝</span> <span class="font-bold text-[11px] sm:text-xs">Observe</span>
+  </button>
+
+  <!-- Collapsible Side Qualitative Guess Drawer -->
+  <div id="obs-drawer" class="hidden absolute top-14 left-3 right-3 sm:right-auto sm:left-6 z-40 max-w-sm bg-slate-950/95 backdrop-blur-2xl border border-slate-800 rounded-2xl p-4 shadow-2xl">
+    <div class="flex items-center justify-between mb-2">
+      <span class="text-xs font-bold uppercase tracking-wider text-emerald-400">📝 Custom Observation</span>
+      <button id="close-obs-btn" class="text-slate-400 hover:text-white text-lg font-bold p-1 leading-none cursor-pointer">&times;</button>
+    </div>
+    <p class="text-[11px] text-slate-300 leading-snug mb-3">
+      Notice another boundary technique (lighting datum, floor step, change in materials)? Aim your crosshair at it and describe it below:
+    </p>
+    <div class="space-y-2">
+      <textarea id="guess-input" rows="2" placeholder="e.g. Recessed cove ceiling light creates an unbuilt walkway edge..." class="w-full bg-slate-900 border border-slate-700/80 rounded-xl p-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-emerald-400 resize-none"></textarea>
+      <button id="submit-guess-btn" class="w-full flex items-center justify-center gap-1.5 bg-cyan-600 hover:bg-cyan-500 active:scale-95 text-white font-bold text-xs py-2 rounded-xl border border-cyan-400/40 transition-all cursor-pointer">
+        <span>🚀</span> Submit Observation
+      </button>
+    </div>
   </div>
 
-
-
-  <!-- Bottom Floating Interactive Dock --> 
-  <footer class="absolute bottom-2 sm:bottom-6 left-0 right-0 z-30 flex flex-col items-center gap-2 sm:gap-3 pointer-events-none px-3"> 
+  <!-- Bottom Floating Interactive Dock (Compact & Landscape-Safe) -->
+  <footer class="absolute bottom-2 sm:bottom-6 left-0 right-0 z-30 flex flex-col items-center gap-2 sm:gap-3 pointer-events-none px-3">
     
-    <!-- Compact Tag Button --> 
-    <button id="tag-btn" class="pointer-events-auto group flex items-center justify-center gap-2 bg-gradient-to-r from-emerald-500 via-teal-500 to-emerald-600 hover:from-emerald-400 text-white font-extrabold text-xs sm:text-sm px-6 py-2.5 sm:px-8 sm:py-3.5 rounded-full border border-emerald-300/40 glow-emerald active:scale-95 shadow-xl transition-all cursor-pointer"> 
-      <span class="text-base sm:text-lg group-hover:scale-125 transition-transform">🎯</span> 
-      <span>TAG CHARACTERISTIC</span> 
-    </button> 
-    
-    <!-- Compact Navigation Capsule --> 
-    <div class="pointer-events-auto flex items-center gap-2 sm:gap-4 bg-slate-950/90 backdrop-blur-2xl px-3 py-1.5 sm:px-5 sm:py-2 rounded-full border border-slate-800 shadow-2xl"> 
-      <!-- Previous Button --> 
-      <button id="prev-node-btn" class="flex items-center gap-1 text-xs font-bold text-slate-300 hover:text-cyan-300 px-2.5 py-1 rounded-full border border-slate-700/60 active:scale-95 transition-all cursor-pointer"> 
-        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"> 
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7" /> 
-        </svg> 
-        <span>Prev</span> 
-      </button> 
-      
-      <!-- Compact Station Counter --> 
-      <span id="node-counter" class="text-[10px] sm:text-xs font-mono font-bold tracking-wider text-cyan-400 px-2 border-x border-slate-800">1 / 4</span> 
-      
-      <!-- Next Button --> 
-      <button id="next-node-btn" class="flex items-center gap-1 text-xs font-bold text-slate-300 hover:text-cyan-300 px-2.5 py-1 rounded-full border border-slate-700/60 active:scale-95 transition-all cursor-pointer"> 
-        <span>Next</span> 
-        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"> <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7" /> 
-        </svg> 
-      </button> 
-    </div> 
+    <!-- Reticle Tag Button -->
+    <button id="tag-btn" class="pointer-events-auto group flex items-center justify-center gap-2 bg-gradient-to-r from-emerald-500 via-teal-500 to-emerald-600 hover:from-emerald-400 text-white font-extrabold text-xs sm:text-sm px-6 py-2.5 sm:px-8 sm:py-3.5 rounded-full border border-emerald-300/40 glow-emerald active:scale-95 shadow-xl transition-all cursor-pointer">
+      <span class="text-base sm:text-lg group-hover:scale-125 transition-transform duration-200">🎯</span>
+      <span>TAG CHARACTERISTIC</span>
+    </button>
+
+    <!-- Navigation Capsule with Compact Styling -->
+    <div class="pointer-events-auto flex items-center gap-2 sm:gap-4 bg-slate-950/90 backdrop-blur-2xl px-3 py-1.5 sm:px-5 sm:py-2 rounded-full border border-slate-800 shadow-2xl">
+      <!-- Previous Button -->
+      <button id="prev-node-btn" class="flex items-center gap-1 text-xs font-bold text-slate-300 hover:text-cyan-300 px-2.5 py-1 rounded-full border border-slate-700/60 active:scale-95 transition-all cursor-pointer">
+        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7" />
+        </svg>
+        <span>Prev</span>
+      </button>
+
+      <!-- Compact Station Counter -->
+      <span id="node-counter" class="text-[10px] sm:text-xs font-mono font-bold tracking-wider text-cyan-400 px-2 border-x border-slate-800">1 / 4</span>
+
+      <!-- Next Button -->
+      <button id="next-node-btn" class="flex items-center gap-1 text-xs font-bold text-slate-300 hover:text-cyan-300 px-2.5 py-1 rounded-full border border-slate-700/60 active:scale-95 transition-all cursor-pointer">
+        <span>Next</span>
+        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7" />
+        </svg>
+      </button>
+    </div>
   </footer>
 
   <!-- Toast Notification Modal -->
@@ -231,9 +256,9 @@
         </div>
       </div>
 
-      <!-- <button onclick="location.reload()" class="w-full bg-emerald-500 hover:bg-emerald-400 active:scale-95 text-slate-950 font-extrabold text-sm py-3 rounded-xl transition-all cursor-pointer">
+      <button onclick="location.reload()" class="w-full bg-emerald-500 hover:bg-emerald-400 active:scale-95 text-slate-950 font-extrabold text-sm py-3 rounded-xl transition-all cursor-pointer">
         Restart Exploration
-      </button> -->
+      </button>
     </div>
   </div>
 
@@ -309,9 +334,6 @@
 
       // 2. Start the countdown timer
       startTimer();
-
-      // 3. Optional: enable 360 viewer controls if you had them locked
-      controlsEnabled = true;
     });
 
     const PANORAMA_NODES = [
@@ -382,7 +404,7 @@
             name: 'Bench',
             yawRange: [64, 73],
             pitchRange: [-15, -4],
-            pts: 710,
+            pts: 10,
             theory: 'Benches invite users to pause and spend time in the courtyard.'
           },
           {
@@ -428,7 +450,7 @@
           {
             id: 'floor_fin2',
             name: 'Floor Finishes',
-            yawRange: [160,245],
+            yawRange: [160, 245],
             pitchRange: [-75, -12],
             pts: 10,
             theory: 'Different floor tile pattern.'
@@ -440,7 +462,7 @@
             pitchRange: [2, 55],
             pts: 10,
             theory: 'The continuous multi-tiered facade acts as a vertical boundary plane that defines the courtyard.'
-          },
+          }
         ]
       },
       {
@@ -449,7 +471,6 @@
         title: 'Gallery',
         isDiagnostic: true,
         targets: [
-          // 1. Darkened ceiling on the left corridor
           {
             id: 'dark_ceiling',
             name: 'Dark Ceiling Soffit',
@@ -458,8 +479,6 @@
             pts: 10,
             theory: 'The lowered black ceiling compresses the height of the space, establishing a different scale before it transitions to the corridor gallery.'
           },
-
-          // 3. Atrium core void (looking down into the well)
           {
             id: 'atrium_void',
             name: 'Atrium Void',
@@ -468,8 +487,6 @@
             pts: 10,
             theory: 'An atrium establishes visual continuity between commercial tiers.'
           },
-
-          // 4. Vertical facade enclosure across the void
           {
             id: 'atrium_facade',
             name: 'Architectural Enclosure',
@@ -478,8 +495,6 @@
             pts: 10,
             theory: 'The continuous multi-tiered facade acts as a vertical boundary plane that defines the courtyard.'
           },
-
-          // 5. Exhibition / Gallery Wall
           {
             id: 'art_gallery_wall',
             name: 'Exhibition Wall',
@@ -488,8 +503,6 @@
             pts: 10,
             theory: 'Mounting an art exhibition onto a blank wall transforms a standard transit hallway into a slow-paced cultural in-between zone.'
           },
-
-          // 7. Base Plane Carpet (Checked last so specific void clicks register first)
           {
             id: 'carpet_floor',
             name: 'Carpet / Floor Finishes',
@@ -506,7 +519,6 @@
         title: 'Centre Court',
         isDiagnostic: true,
         targets: [
-          // 1. Central Skylight Overhead
           {
             id: 'atrium_skylight',
             name: 'Skylight',
@@ -515,8 +527,6 @@
             pts: 10,
             theory: 'Natural daylight from the skylight highlights the central atrium.'
           },
-
-          // 2. Central Escalator Stack
           {
             id: 'escalator_spine',
             name: 'Criss-Crossing Escalator Core',
@@ -525,8 +535,6 @@
             pts: 10,
             theory: 'The stacked escalators serve as a dynamic circulation spine, connecting various horizontal tiers.'
           },
-
-          // 4. Ground Graphic Event Floor (Looking downward into well)
           {
             id: 'graphic_floor',
             name: 'Optical Graphic Floor Datum',
@@ -535,8 +543,6 @@
             pts: 10,
             theory: 'The bold floor pattern delineates a temporary event zone from permanent walkways.'
           },
-
-          // 5. Cascading Balcony Fascia (Macro Enclosure)
           {
             id: 'curved_fascia',
             name: 'Terraced Balustrade',
@@ -563,7 +569,7 @@
 
     const renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setSize(window.innerWidth, window.innerHeight);
-    renderer.setPixelRatio(window.devicePixelRatio);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     container.appendChild(renderer.domElement);
 
     const controls = new THREE.OrbitControls(camera, renderer.domElement);
@@ -587,7 +593,6 @@
             sphereMesh.material.map.dispose();
           }
           sphereMesh.material.dispose();
-          // Fresh material with DoubleSide guarantees visible rendering
           sphereMesh.material = new THREE.MeshBasicMaterial({
             map: texture,
             side: THREE.DoubleSide
@@ -614,7 +619,8 @@
       const node = PANORAMA_NODES[currentNodeIndex];
       loadPanorama(node.file);
 
-      document.getElementById('node-counter').innerText = `${currentNodeIndex + 1} of ${PANORAMA_NODES.length}`;
+      // Short format for mobile display compatibility
+      document.getElementById('node-counter').innerText = `${currentNodeIndex + 1} / ${PANORAMA_NODES.length}`;
       document.getElementById('calib-node').innerText = node.file;
 
       const badge = document.getElementById('station-badge');
@@ -623,12 +629,12 @@
 
       if (node.isDiagnostic) {
         badge.innerText = `Diagnostic: ${node.title}`;
-        badge.className = "text-xs px-4 py-1.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 animate-pulse font-semibold";
+        badge.className = "text-[10px] sm:text-xs px-2.5 py-1 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 animate-pulse font-semibold truncate max-w-[110px] sm:max-w-none";
         reticle.style.display = 'block';
         tagBtn.classList.remove('opacity-40', 'pointer-events-none');
       } else {
         badge.innerText = `Explore: ${node.title}`;
-        badge.className = "text-xs px-4 py-1.5 rounded-full bg-slate-800 text-slate-400 border border-slate-700 font-semibold";
+        badge.className = "text-[10px] sm:text-xs px-2.5 py-1 rounded-full bg-slate-800 text-slate-400 border border-slate-700 font-semibold truncate max-w-[110px] sm:max-w-none";
         reticle.style.display = 'none';
         tagBtn.classList.add('opacity-40', 'pointer-events-none');
       }
@@ -704,9 +710,30 @@
       submissionsQueue.push(guessObj);
       input.value = '';
 
+      // Auto-hide drawer on mobile once submitted
+      const drawer = document.getElementById('obs-drawer');
+      if (drawer) drawer.classList.add('hidden');
+
       showToast(true, "Observation Recorded!", "You went above and beyond - good job!", "Submitted");
       renderLecturerList();
     });
+
+    // Toggle Handlers for Observation Drawer
+    const obsDrawer = document.getElementById('obs-drawer');
+    const toggleObsBtn = document.getElementById('toggle-obs-btn');
+    const closeObsBtn = document.getElementById('close-obs-btn');
+
+    if (toggleObsBtn && obsDrawer) {
+      toggleObsBtn.addEventListener('click', () => {
+        obsDrawer.classList.toggle('hidden');
+      });
+    }
+
+    if (closeObsBtn && obsDrawer) {
+      closeObsBtn.addEventListener('click', () => {
+        obsDrawer.classList.add('hidden');
+      });
+    }
 
     function updateScoreDisplay() {
       document.getElementById('score-val').innerText = score;
@@ -831,11 +858,9 @@
 
     // End-Game Screen
     function showEndScreen() {
-      // 1. Immediately send results to your Google Sheet
       submitStudentResultsToSheet();
 
-      // 2. Stop the timer if running
-      clearInterval(timerInterval);
+      if (timerInterval) clearInterval(timerInterval);
 
       const studentName = document.getElementById('student-name').value.trim() || 'Anonymous Hunter';
       document.getElementById('end-student-name').innerText = studentName;
@@ -849,44 +874,40 @@
     document.getElementById('finish-early-btn').addEventListener('click', showEndScreen);
 
     // 10-Minute Countdown Timer
-let timerInterval = null;
-let timeLeft = 600; // 10 minutes in seconds
-let elapsedSeconds = 0;
+    let timerInterval = null;
+    let timeLeft = 600;
+    let elapsedSeconds = 0;
 
-function formatTime(seconds) {
-  const m = Math.floor(seconds / 60).toString().padStart(2, '0');
-  const s = (seconds % 60).toString().padStart(2, '0');
-  return `${m}:${s}`;
-}
-
-function startTimer() {
-  // Prevent duplicate intervals if clicked multiple times
-  if (timerInterval) clearInterval(timerInterval);
-
-  const timerDisplay = document.getElementById('timer-display');
-
-  timerInterval = setInterval(() => {
-    timeLeft--;
-    elapsedSeconds++;
-
-    // Update HUD display
-    if (timerDisplay) {
-      timerDisplay.innerText = formatTime(timeLeft);
-
-      // Warning color for the last 60 seconds
-      if (timeLeft <= 60) {
-        timerDisplay.classList.add('text-rose-400', 'animate-pulse');
-      }
+    function formatTime(seconds) {
+      const m = Math.floor(seconds / 60).toString().padStart(2, '0');
+      const s = (seconds % 60).toString().padStart(2, '0');
+      return `${m}:${s}`;
     }
 
-    // 10-minute buzzer
-    if (timeLeft <= 0) {
-      clearInterval(timerInterval);
-      showToast(false, "Time is Up!", "Session ended. Uploading final score...", "COMPLETE");
-      showEndScreen();
+    function startTimer() {
+      if (timerInterval) clearInterval(timerInterval);
+
+      const timerDisplay = document.getElementById('timer-display');
+
+      timerInterval = setInterval(() => {
+        timeLeft--;
+        elapsedSeconds++;
+
+        if (timerDisplay) {
+          timerDisplay.innerText = formatTime(timeLeft);
+
+          if (timeLeft <= 60) {
+            timerDisplay.classList.add('text-rose-400', 'animate-pulse');
+          }
+        }
+
+        if (timeLeft <= 0) {
+          clearInterval(timerInterval);
+          showToast(false, "Time is Up!", "Session ended. Uploading final score...", "COMPLETE");
+          showEndScreen();
+        }
+      }, 1000);
     }
-  }, 1000);
-}
 
     // Toggle Calibration Overlay ('C' key)
     window.addEventListener('keydown', (e) => {
@@ -909,22 +930,26 @@ function startTimer() {
       }
     }
 
+    // Mobile-Ready Window Resize Handler
     window.addEventListener('resize', () => {
-      const width = window.innerWidth' const height = window.innerHeight;
+      const width = window.innerWidth;
+      const height = window.innerHeight;
+
       camera.aspect = width / height;
       camera.updateProjectionMatrix();
+
       renderer.setSize(width, height);
-      renderer.setPixelRatio(Math.min(window.devicePixelRatio,2));
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     });
 
     updateNodeState();
     animate();
+
     // ==========================================
     // GOOGLE SHEETS SYNC & TOP 5 LEADERBOARD
     // ==========================================
     const GOOGLE_SHEET_WEBAPP_URL = "https://script.google.com/macros/s/AKfycbz0GGyvE9WRDuqJeUm-NI0ilqAPITNMPc0JaoBQFJIlIx9ZndzHkeufY0PLNaPXISMDdQ/exec";
 
-    // Track total clicks and hits for the accuracy metric
     let totalClicks = 0;
     let successfulHits = 0;
 
@@ -932,12 +957,15 @@ function startTimer() {
       const nameInput = document.getElementById('student-name');
       const studentName = (nameInput && nameInput.value.trim()) ? nameInput.value.trim() : 'Anonymous Hunter';
       
+      const timerElem = document.getElementById('timer-display');
+      const formattedTimeTaken = timerElem ? timerElem.innerText : formatTime(elapsedSeconds);
+
       const payload = {
         name: studentName,
         score: score,
         targetsCount: claimedTargets.size,
         accuracy: totalClicks > 0 ? Math.round((successfulHits / totalClicks) * 100) : 100,
-        timeTaken: document.getElementById('timer-display') ? document.getElementById('timer-display').innerText : "N/A",
+        timeTaken: formattedTimeTaken,
         observations: submissionsQueue.map(s => ({
           station: s.station,
           text: s.text,
@@ -967,9 +995,7 @@ function startTimer() {
       }
     }
 
-    // Modal to display the Top 5 results to the student
     function displayTop5Modal(top5List, currentStudent) {
-      // Remove any existing leaderboard modal
       const existing = document.getElementById('top5-modal');
       if (existing) existing.remove();
 
