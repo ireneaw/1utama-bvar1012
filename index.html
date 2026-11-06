@@ -16,8 +16,8 @@
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 
   <style>
-    body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; }
-    #pano-container { width: 100vw; height: 100vh; position: absolute; top: 0; left: 0; z-index: 1; }
+    body, html { margin: 0; padding: 0; width: 100%; height: 100%; height: 100dvh; overflow: hidden; }
+    #pano-container { width: 100vw; height:100%; height: 100dvh; position: absolute; top: 0; left: 0; z-index: 1; }
     
     .crosshair-reticle {
       position: absolute;
@@ -118,86 +118,79 @@
     <span id="calib-coords">Yaw: 0.0° | Pitch: 0.0°</span> &nbsp;|&nbsp; <span id="calib-node">1U_1.jpg</span>
   </div>
 
-  <!-- Top Bar HUD -->
-  <header class="absolute top-0 left-0 right-0 z-30 flex items-center justify-between px-6 py-4 bg-slate-950/80 backdrop-blur-xl border-b border-slate-800">
-    <div class="flex items-center gap-3">
-      <div class="flex items-center gap-2 px-3 py-1.5 bg-emerald-500/15 border border-emerald-500/30 rounded-xl text-emerald-400 font-extrabold text-sm tracking-wide">
-        <span>🏛️</span> 1 Utama: In-Between Spaces
+  <!-- Top Bar HUD (Responsive) -->
+  <header class="absolute top-0 left-0 right-0 z-30 flex items-center justify-between px-2.5 py-2 sm:px-6 sm:py-3 bg-slate-950/85 backdrop-blur-xl border-b border-slate-800 gap-1.5">
+    <div class="flex items-center gap-2">
+      <div class="flex items-center gap-1.5 px-2.5 py-1 bg-emerald-500/15 border border-emerald-500/30 rounded-lg text-emerald-400 font-extrabold text-xs">
+        <span>🏛️</span> <span class="hidden md:inline"> 1 Utama: In-Between Spaces</span>span>
       </div>
-      <input type="text" id="student-name" placeholder="Student Name / ID..." class="bg-slate-900/90 border border-slate-700 text-xs px-3 py-2 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-emerald-400 focus:ring-1 focus:ring-emerald-400 transition-all w-48" />
+      <input type="text" id="student-name" placeholder="Student Name" class="hidden lg:block bg-slate-900 border border-slate-700 text-xs px-2.5 py-1 rounded-lg text-white w-36 focus:outline-none focus:border-emerald-400" /> 
     </div>
 
     <!-- Timer, Station Indicator & End Button -->
-    <div class="flex items-center gap-4">
-      <div id="station-badge" class="text-xs px-4 py-1.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 animate-pulse font-semibold">
+    <div class="flex items-center gap-1.5 sm:gap-3">
+      <div id="station-badge" class="text-[10px] sm:text-xs px-2.5 py-1 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 font-semibold truncate max-w-[105px] sm:max-w-none" >
         Social Staircase
       </div>
-      <div class="text-xs font-mono font-bold bg-slate-900/90 px-3.5 py-1.5 rounded-xl border border-slate-700 text-slate-200 flex items-center gap-1.5">
+      <div class="text-[11px] sm:text-xs font-mono font-bold bg-slate-900 px-2 py-1 rounded-lg border border-slate-700 text-slate-200 flex items-center gap-1">
         <span>⏱️</span> <span id="timer-display">10:00</span>
       </div>
-      <button id="finish-early-btn" class="text-xs font-bold bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 border border-rose-500/40 px-3 py-1.5 rounded-xl transition-all cursor-pointer">
-        Finish Session
-      </button>
-    </div>
-
-    <!-- Live Score Display -->
-    <div class="flex items-center gap-2">
-      <div id="score-box" class="flex items-center gap-2 bg-gradient-to-r from-amber-500/20 to-orange-500/20 border border-amber-500/40 px-4 py-1.5 rounded-xl text-amber-300 font-bold transition-transform duration-200">
-        <span class="text-lg">🏆</span>
-        <span id="score-val" class="text-lg font-mono font-extrabold text-amber-200">0</span>
-      </div>
-    </div>
+      <div class="flex items-center gap-1.5 sm:gap-2"> <div id="score-box" class="flex items-center gap-1 bg-amber-500/20 border border-amber-500/40 px-2 py-1 rounded-lg text-amber-300 font-bold text-xs sm:text-sm"> <span>🏆</span> <span id="score-val" class="font-mono font-extrabold text-amber-200">0</span> </div> <button id="finish-early-btn" class="text-[10px] sm:text-xs font-bold bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 border border-rose-500/40 px-2 sm:px-2.5 py-1 rounded-lg transition-all cursor-pointer"> End </button> 
+      </div> 
   </header>
 
   <!-- Side Qualitative Guess Drawer -->
-  <div class="absolute top-24 left-6 z-30 max-w-xs bg-slate-950/85 backdrop-blur-xl border border-slate-800 rounded-2xl p-4 shadow-2xl">
-    <div class="flex items-center justify-between mb-2">
-      <span class="text-xs font-bold uppercase tracking-wider text-emerald-400">📝 Custom Observation</span>
-      <span class="text-[10px] text-slate-400">Aim & Submit</span>
-    </div>
-    <p class="text-[11px] text-slate-300 leading-snug mb-3">
-      Notice another boundary technique (lighting datum, floor step, change in materials)? Aim your crosshair at it and describe it below:
-    </p>
-    <div class="space-y-2">
-      <textarea id="guess-input" rows="2" placeholder="e.g. Recessed cove ceiling light creates an unbuilt walkway edge..." class="w-full bg-slate-900 border border-slate-700/80 rounded-xl p-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-emerald-400 resize-none"></textarea>
-      <button id="submit-guess-btn" class="w-full flex items-center justify-center gap-1.5 bg-cyan-600 hover:bg-cyan-500 active:scale-95 text-white font-bold text-xs py-2 rounded-xl border border-cyan-400/40 transition-all cursor-pointer">
-        <span>🚀</span> Submit Observation
-      </button>
-    </div>
+  <div class="absolute top-14 left-3 sm:top-20 sm:left-6 z-30 flex items-center gap-1.5 bg-slate-900/90 border border-cyan-300 text-xs px-3 py-1.5 rounded-full shadow-lg backdrop-blur-md cursor-pointer">
+    <span>📝</span> 
+    <span class="font-bold text-[11px] sm:text-xs">Observe</span> 
+  </button> 
+    <!-- Collapsible Observation Drawer (Hidden until clicked) --> 
+  <div id="obs-drawer" class="hidden absolute top-14 left-3 right-3 sm:right-auto sm:left-6 z-40 max-w-sm bg-slate-950/95 backdrop-blur-2xl border border-slate-800 rounded-2xl p-4 shadow-2xl"> 
+  <div class="flex items-center justify-between mb-2"> 
+    <span class="text-xs font-bold uppercase tracking-wider text-emerald-400">📝 Custom Observation</span> 
+    <button id="close-obs-btn" class="text-slate-400 hover:text-white text-lg font-bold p-1 leading-none cursor-pointer">&times;</button> 
+  </div> 
+    <p class="text-[11px] text-slate-300 leading-snug mb-3"> 
+      Aim your crosshair at a threshold datum, step, or material transition and describe it: 
+    </p> 
+    <div class="space-y-2"> <textarea id="guess-input" rows="2" placeholder="e.g. Recessed cove ceiling light creates an unbuilt walkway edge..." class="w-full bg-slate-900 border border-slate-700/80 rounded-xl p-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-emerald-400 resize-none"></textarea> 
+      <button id="submit-guess-btn" class="w-full flex items-center justify-center gap-1.5 bg-cyan-600 hover:bg-cyan-500 active:scale-95 text-white font-bold text-xs py-2 rounded-xl border border-cyan-400/40 transition-all cursor-pointer"> 
+        <span>🚀</span> Submit Observation 
+      </button> 
+    </div> 
   </div>
 
-  <!-- Bottom Floating Interactive Dock -->
-  <footer class="absolute bottom-8 left-0 right-0 z-30 flex flex-col items-center gap-3.5 pointer-events-none">
+
+
+  <!-- Bottom Floating Interactive Dock --> 
+  <footer class="absolute bottom-2 sm:bottom-6 left-0 right-0 z-30 flex flex-col items-center gap-2 sm:gap-3 pointer-events-none px-3"> 
     
-    <!-- Reticle Tag Button -->
-    <button id="tag-btn" class="pointer-events-auto group flex items-center gap-3 bg-gradient-to-r from-emerald-500 via-teal-500 to-emerald-600 hover:from-emerald-400 hover:via-teal-400 text-white font-extrabold text-base px-8 py-3.5 rounded-full border border-emerald-300/40 glow-emerald active:scale-95 transition-all cursor-pointer">
-      <span class="text-xl group-hover:scale-125 transition-transform duration-200">🎯</span>
-      <span>TAG CHARACTERISTIC</span>
-    </button>
-
-    <!-- Navigation Capsule with Larger Chevrons -->
-    <div class="pointer-events-auto flex items-center gap-4 bg-slate-950/90 backdrop-blur-2xl px-5 py-2.5 rounded-full border border-slate-800 shadow-2xl">
-      <!-- Previous Button -->
-      <button id="prev-node-btn" class="flex items-center gap-2 text-sm font-bold text-slate-300 hover:text-cyan-300 hover:bg-slate-800/80 px-4 py-2 rounded-full border border-slate-700/60 hover:border-cyan-400/50 active:scale-95 transition-all cursor-pointer group">
-        <svg class="w-5 h-5 -translate-x-0.5 group-hover:-translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7" />
-        </svg>
-        <span>Prev</span>
-      </button>
-
-      <!-- Station Counter -->
-      <div class="flex items-center px-4 border-x border-slate-800">
-        <span id="node-counter" class="text-xs font-mono font-bold tracking-wider text-cyan-400">Station 1 of 4</span>
-      </div>
-
-      <!-- Next Button -->
-      <button id="next-node-btn" class="flex items-center gap-2 text-sm font-bold text-slate-300 hover:text-cyan-300 hover:bg-slate-800/80 px-4 py-2 rounded-full border border-slate-700/60 hover:border-cyan-400/50 active:scale-95 transition-all cursor-pointer group">
-        <span>Next</span>
-        <svg class="w-5 h-5 translate-x-0.5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7" />
-        </svg>
-      </button>
-    </div>
+    <!-- Compact Tag Button --> 
+    <button id="tag-btn" class="pointer-events-auto group flex items-center justify-center gap-2 bg-gradient-to-r from-emerald-500 via-teal-500 to-emerald-600 hover:from-emerald-400 text-white font-extrabold text-xs sm:text-sm px-6 py-2.5 sm:px-8 sm:py-3.5 rounded-full border border-emerald-300/40 glow-emerald active:scale-95 shadow-xl transition-all cursor-pointer"> 
+      <span class="text-base sm:text-lg group-hover:scale-125 transition-transform">🎯</span> 
+      <span>TAG CHARACTERISTIC</span> 
+    </button> 
+    
+    <!-- Compact Navigation Capsule --> 
+    <div class="pointer-events-auto flex items-center gap-2 sm:gap-4 bg-slate-950/90 backdrop-blur-2xl px-3 py-1.5 sm:px-5 sm:py-2 rounded-full border border-slate-800 shadow-2xl"> 
+      <!-- Previous Button --> 
+      <button id="prev-node-btn" class="flex items-center gap-1 text-xs font-bold text-slate-300 hover:text-cyan-300 px-2.5 py-1 rounded-full border border-slate-700/60 active:scale-95 transition-all cursor-pointer"> 
+        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"> 
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7" /> 
+        </svg> 
+        <span>Prev</span> 
+      </button> 
+      
+      <!-- Compact Station Counter --> 
+      <span id="node-counter" class="text-[10px] sm:text-xs font-mono font-bold tracking-wider text-cyan-400 px-2 border-x border-slate-800">1 / 4</span> 
+      
+      <!-- Next Button --> 
+      <button id="next-node-btn" class="flex items-center gap-1 text-xs font-bold text-slate-300 hover:text-cyan-300 px-2.5 py-1 rounded-full border border-slate-700/60 active:scale-95 transition-all cursor-pointer"> 
+        <span>Next</span> 
+        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"> <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7" /> 
+        </svg> 
+      </button> 
+    </div> 
   </footer>
 
   <!-- Toast Notification Modal -->
@@ -621,7 +614,7 @@
       const node = PANORAMA_NODES[currentNodeIndex];
       loadPanorama(node.file);
 
-      document.getElementById('node-counter').innerText = `Station ${currentNodeIndex + 1} of ${PANORAMA_NODES.length}`;
+      document.getElementById('node-counter').innerText = `${currentNodeIndex + 1} of ${PANORAMA_NODES.length}`;
       document.getElementById('calib-node').innerText = node.file;
 
       const badge = document.getElementById('station-badge');
@@ -917,9 +910,11 @@ function startTimer() {
     }
 
     window.addEventListener('resize', () => {
-      camera.aspect = window.innerWidth / window.innerHeight;
+      const width = window.innerWidth' const height = window.innerHeight;
+      camera.aspect = width / height;
       camera.updateProjectionMatrix();
-      renderer.setSize(window.innerWidth, window.innerHeight);
+      renderer.setSize(width, height);
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio,2));
     });
 
     updateNodeState();
